@@ -15,10 +15,11 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalDateTime;
 
 /**
  * Cihazlardan TCP ile gelen JSON loglarını dinleyip veritabanına kaydeden servis.
- * 8080 portunda dinler; her bağlantıdan tek satır JSON okur ve device_logs tablosuna yazar.
+ * 8080 portunda dinler; her bağlantıdan tek satır JSON okur ve MongoDB device_logs koleksiyonuna yazar.
  */
 @Service  // Spring: Bu sınıf bir servis bean'i; gerekli yerlere enjekte edilebilir
 public class TcpServerService {
@@ -60,11 +61,12 @@ public class TcpServerService {
                 // JSON metnini DeviceLog nesnesine çevir (Jackson)
                 ObjectMapper objectMapper = new ObjectMapper();
                 DeviceLog log = objectMapper.readValue(inputLine, DeviceLog.class);
-
-                //TODO: Create Enquue and message will be publish
+                if (log.getRecordTime() == null) {
+                    log.setRecordTime(LocalDateTime.now());
+                }
                 repository.save(log);
 
-                System.out.println("Veri PostgreSQL'e başarıyla kaydedildi!");
+                System.out.println("Veri MongoDB'ye başarıyla kaydedildi!");
             } catch (Exception e) {
                 System.out.println("Veri okunurken hata oluştu: " + e.getMessage());
             }
