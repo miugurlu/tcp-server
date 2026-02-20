@@ -1,8 +1,7 @@
 package com.example.demo.service;
 
-// Model ve repository
 import com.example.demo.model.DeviceLog;
-import com.example.demo.repository.IDeviceRepository;
+import com.example.demo.queue.Producer;
 // JSON okuma (Jackson)
 import com.fasterxml.jackson.databind.ObjectMapper;
 // Spring: uygulama başlarken metod çalıştırma
@@ -21,12 +20,16 @@ import java.time.LocalDateTime;
  * Cihazlardan TCP ile gelen JSON loglarını dinleyip veritabanına kaydeden servis.
  * 8080 portunda dinler; her bağlantıdan tek satır JSON okur ve MongoDB device_logs koleksiyonuna yazar.
  */
-@Service  // Spring: Bu sınıf bir servis bean'i; gerekli yerlere enjekte edilebilir
+@Service // Spring: Bu sınıf bir servis bean'i; gerekli yerlere enjekte edilebilir
 public class TcpServerService {
 
-    /** Veritabanına kayıt için Spring'in enjekte ettiği repository */
-    @Autowired  // Spring: Bu alanı otomatik doldur (dependency injection); DeviceRepository implementasyonu verilir
-    private IDeviceRepository repository;
+    /** Gelen log'u kuyruğa ekler; Consumer arka planda MongoDB'ye yazar */
+    @Autowired
+    private Producer producer;
+
+    /** Jackson ObjectMapper; Spring'in sağladığı Java 8 tarih (LocalDateTime vb.) desteği dahil. */
+    @Autowired
+    private ObjectMapper objectMapper;
 
     /**
      * Uygulama ayağa kalkınca bir kez çalışır; 8080 portunda TCP sunucusunu başlatır.
@@ -52,21 +55,20 @@ public class TcpServerService {
      * Bağlanan bir istemciden tek satır JSON okuyup DeviceLog'a çevirir ve veritabanına kaydeder.
      */
     private void handleClient(Socket socket) {
+        final ObjectMapper mapper = this.objectMapper;
         new Thread(() -> {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
                 // Cihaz tek satır JSON göndermeli
                 String inputLine = reader.readLine();
                 System.out.println("Cihazdan gelen ham veri: " + inputLine);
 
-                // JSON metnini DeviceLog nesnesine çevir (Jackson)
-                ObjectMapper objectMapper = new ObjectMapper();
-                DeviceLog log = objectMapper.readValue(inputLine, DeviceLog.class);
+                // JSON metnini DeviceLog nesnesine çevir (Jackson; Spring ObjectMapper Java 8 tarih tiplerini destekler)
+                DeviceLog log = mapper.readValue(inputLine, DeviceLog.class);
                 if (log.getRecordTime() == null) {
                     log.setRecordTime(LocalDateTime.now());
                 }
-                repository.save(log);
-
-                System.out.println("Veri MongoDB'ye başarıyla kaydedildi!");
+                producer.enqueue(log);
+                System.out.println("Veri kuyruğa eklendi.");
             } catch (Exception e) {
                 System.out.println("Veri okunurken hata oluştu: " + e.getMessage());
             }
