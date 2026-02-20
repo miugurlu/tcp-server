@@ -138,6 +138,6 @@ public class DeviceLog {
         private Double altitude;
 
         @JsonProperty("timestamp")
-        private String timestamp;
+        private LocalDateTime timestamp;
     }
 }
