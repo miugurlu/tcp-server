@@ -32,5 +32,8 @@ build/
 ### VS Code ###
 .vscode/
 
+### Logs ###
+logs/
+
 ### Local config (şifre vb. paylaşılmasın) ###
 src/main/resources/application.properties
