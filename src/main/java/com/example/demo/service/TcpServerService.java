@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.model.DeviceLog;
 import com.example.demo.queue.Producer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
@@ -26,6 +27,9 @@ public class TcpServerService {
     private Producer producer;
 
     @Autowired
+    private DeviceTokenService deviceTokenService;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     /**
@@ -48,7 +52,8 @@ public class TcpServerService {
     }
 
     /**
-     * Bağlanan bir istemciden tek satır JSON okuyup DeviceLog'a çevirir ve veritabanına kaydeder.
+     * Bağlanan bir istemciden tek satır JSON okur. type "register_token" ise token kaydı yapar;
+     * değilse cihaz envanteri olarak DeviceLog parse edip device_logs kuyruğuna ekler.
      */
     private void handleClient(Socket socket) {
         final ObjectMapper mapper = this.objectMapper;
@@ -57,6 +62,14 @@ public class TcpServerService {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
                 String inputLine = reader.readLine();
                 log.debug("Cihazdan gelen ham veri: {}", inputLine);
+
+                JsonNode root = mapper.readTree(inputLine);
+                if (root != null && "register_token".equals(root.path("type").asText(null))) {
+                    String deviceId = root.path("deviceId").asText(null);
+                    String deviceToken = root.path("deviceToken").asText(null);
+                    deviceTokenService.registerToken(deviceId, deviceToken);
+                    return;
+                }
 
                 DeviceLog deviceLog = mapper.readValue(inputLine, DeviceLog.class);
                 if (deviceLog.getRecordTime() == null) {
