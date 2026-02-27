@@ -20,7 +20,6 @@ public class DeviceLog {
 
     @Id
     private String id;
-    private String deviceId;
     private Identity identity;
     private Resources resources;
     private Power power;
