@@ -35,5 +35,8 @@ build/
 ### Logs ###
 logs/
 
-### Local config (şifre vb. paylaşılmasın) ###
+### Local config ###
 src/main/resources/application.properties
+
+### Keys ###
+/src/main/java/com/example/demo/keys/AuthKey.p8
