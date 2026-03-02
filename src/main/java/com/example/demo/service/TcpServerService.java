@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.TcpInboundMessage;
 import com.example.demo.model.DeviceLog;
+import com.example.demo.model.DeviceToken;
 import com.example.demo.queue.Producer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,31 +54,45 @@ public class TcpServerService {
     }
 
     /**
-     * Bağlanan bir istemciden tek satır JSON okur. type "register_token" ise token kaydı yapar;
-     * değilse cihaz envanteri olarak DeviceLog parse edip device_logs kuyruğuna ekler.
+     * Bağlanan bir istemciden tek satır JSON okur; DTO'ya parse edip type'a göre yönlendirir.
      */
     private void handleClient(Socket socket) {
         final ObjectMapper mapper = this.objectMapper;
         String clientName = "tcp-client-" + socket.getRemoteSocketAddress();
         new Thread(() -> {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-                String inputLine = reader.readLine();
+                StringBuilder inputLine = new StringBuilder();
+                inputLine.append(reader.readLine());
                 log.debug("Cihazdan gelen ham veri: {}", inputLine);
 
-                JsonNode root = mapper.readTree(inputLine);
-                if (root != null && "register_token".equals(root.path("type").asText(null))) {
-                    String deviceId = root.path("deviceId").asText(null);
-                    String deviceToken = root.path("deviceToken").asText(null);
-                    deviceTokenService.registerToken(deviceId, deviceToken);
+                JsonNode root = mapper.readTree(inputLine.toString());
+                if (root == null) {
+                    return;
+                }
+                TcpInboundMessage dto = new TcpInboundMessage(
+                        root.path("type").asText(null),
+                        root
+                );
+
+                if ("register_token".equals(dto.getType())) {
+                    String deviceId = dto.getPayload().path("deviceId").asText(null);
+                    String deviceTokenValue = dto.getPayload().path("deviceToken").asText(null);
+                    DeviceToken deviceToken = DeviceToken.of(deviceId, deviceTokenValue);
+                    deviceTokenService.registerToken(deviceToken);
                     return;
                 }
 
-                DeviceLog deviceLog = mapper.readValue(inputLine, DeviceLog.class);
-                if (deviceLog.getRecordTime() == null) {
-                    deviceLog.setRecordTime(LocalDateTime.now());
+                if ("device_inventory".equals(dto.getType())) {
+                    DeviceLog deviceLog = mapper.treeToValue(dto.getPayload(), DeviceLog.class);
+                    if (deviceLog.getRecordTime() == null) {
+                        deviceLog.setRecordTime(LocalDateTime.now());
+                    }
+                    producer.enqueue(deviceLog);
+                    log.info("Veri kuyruğa eklendi.");
+                    return;
                 }
-                producer.enqueue(deviceLog);
-                log.info("Veri kuyruğa eklendi.");
+
+                log.warn("Bilinmeyen mesaj tipi, atlanıyor: type={}", dto.getType());
             } catch (Exception e) {
                 log.warn("Veri okunurken hata oluştu: {}", e.getMessage(), e);
             }

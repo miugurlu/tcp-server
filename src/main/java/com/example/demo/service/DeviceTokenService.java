@@ -17,14 +17,14 @@ public class DeviceTokenService {
     private IDeviceTokenRepository deviceTokenRepository;
 
     /**
-     * deviceId ve deviceToken'ı kaydeder veya aynı deviceId varsa günceller.
+     * DeviceToken nesnesini kaydeder veya aynı deviceId varsa günceller (upsert).
      */
-    public void registerToken(String deviceId, String deviceToken) {
-        if (deviceId == null || deviceToken == null) {
-            log.warn("registerToken: deviceId veya deviceToken null, kayıt atlanıyor.");
+    public void registerToken(DeviceToken deviceToken) {
+        if (deviceToken == null || deviceToken.getId() == null || deviceToken.getDeviceToken() == null) {
+            log.warn("registerToken: deviceToken veya gerekli alanlar null, kayıt atlanıyor.");
             return;
         }
-        deviceTokenRepository.save(DeviceToken.of(deviceId, deviceToken));
-        log.info("Token kaydedildi/güncellendi: deviceId={}", deviceId);
+        deviceTokenRepository.save(deviceToken);
+        log.info("Token kaydedildi/güncellendi: deviceId={}", deviceToken.getId());
     }
 }
