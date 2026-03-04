@@ -1,0 +1,31 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: demo
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/mdm_db
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: yourmail
+    password: yourpassword
+    properties:
+      mail:
+        smtp:
+          starttls:
+            enable: true
+
+report:
+  mail:
+    to: yourreceiver
+
+
+apns:
+  key-path: src/main/java/com/example/demo/keys/key_example
+  key-id: yourkey
+  team-id: yourteam
+  bundle-id: yourbundle
+  sandbox: true

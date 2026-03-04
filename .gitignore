@@ -37,6 +37,7 @@ logs/
 
 ### Local config ###
 src/main/resources/application.properties
+src/main/resources/application.yml
 
 ### Keys ###
 /src/main/java/com/example/demo/keys/AuthKey.p8
