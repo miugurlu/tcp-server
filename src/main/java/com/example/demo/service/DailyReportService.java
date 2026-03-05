@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.DailyReport;
+import com.example.demo.mapper.IDailyReportMapper;
 import com.example.demo.model.DeviceLog;
 import com.example.demo.repository.IDeviceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,6 @@ import org.thymeleaf.context.Context;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,6 +25,9 @@ public class DailyReportService {
 
     @Autowired
     private IDeviceRepository deviceRepository;
+
+    @Autowired
+    private IDailyReportMapper dailyReportMapper;
 
     @Autowired
     private TemplateEngine templateEngine;
@@ -44,42 +47,17 @@ public class DailyReportService {
                 .filter(log -> log.getIdentity() != null && log.getIdentity().getIdentifierForVendor() != null)
                 .collect(Collectors.groupingBy(log -> log.getIdentity().getIdentifierForVendor()));
 
-        List<DailyReport.DeviceReportEntry> entries = new ArrayList<>();
-        for (List<DeviceLog> deviceLogs : logsByDevice.values()) {
-            if (deviceLogs.isEmpty()) continue;
-            DeviceLog.Identity id = deviceLogs.get(0).getIdentity();
-
-            DailyReport.DeviceReportEntry entry = new DailyReport.DeviceReportEntry();
-            entry.setDeviceName(id.getDeviceName());
-            entry.setSystemName(id.getSystemName());
-            entry.setSystemVersion(id.getSystemVersion());
-            entry.setIdentifierForVendor(id.getIdentifierForVendor());
-
-            List<DailyReport.DeviceReadingRow> readings = new ArrayList<>();
-            for (DeviceLog log : deviceLogs) {
-                DailyReport.DeviceReadingRow row = new DailyReport.DeviceReadingRow();
-                if (log.getResources() != null) {
-                    row.setPhysicalMemoryGB(log.getResources().getPhysicalMemoryGB());
-                    row.setProcessorCountActive(log.getResources().getProcessorCountActive());
-                    row.setProcessorCountTotal(log.getResources().getProcessorCountTotal());
-                    row.setSystemUptime(log.getResources().getSystemUptime());
-                    row.setTotalDiskSpaceGB(log.getResources().getTotalDiskSpaceGB());
-                    row.setFreeDiskSpaceGB(log.getResources().getFreeDiskSpaceGB());
-                }
-                if (log.getPower() != null) {
-                    row.setBatteryLevel(log.getPower().getBatteryLevel());
-                    row.setBatteryState(log.getPower().getBatteryState());
-                    row.setThermalState(log.getPower().getThermalState());
-                }
-                if (log.getNetwork() != null) {
-                    row.setConnectionType(log.getNetwork().getConnectionType());
-                }
-                row.setRecordTime(log.getRecordTime());
-                readings.add(row);
-            }
-            entry.setReadings(readings);
-            entries.add(entry);
-        }
+        List<DailyReport.DeviceReportEntry> entries = logsByDevice.values().stream()
+                .filter(deviceLogs -> !deviceLogs.isEmpty())
+                .map(deviceLogs -> {
+                    DailyReport.DeviceReportEntry entry = dailyReportMapper.toDeviceReportEntry(deviceLogs.get(0));
+                    List<DailyReport.DeviceReadingRow> readings = deviceLogs.stream()
+                            .map(log -> dailyReportMapper.toDeviceReadingRow(log))
+                            .collect(Collectors.toList());
+                    entry.setReadings(readings);
+                    return entry;
+                })
+                .collect(Collectors.toList());
 
         DailyReport report = new DailyReport();
         report.setReportDate(date);

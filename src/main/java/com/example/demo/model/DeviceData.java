@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class DeviceData {
 
-    /** MongoDB _id = cihaz kimliği (deviceId/IDFV); aynı cihaz tekrar gelince güncelleme (upsert). */
     @Id
     private String id;
     private DeviceLog.Identity identity;
@@ -25,23 +24,4 @@ public class DeviceData {
     private DeviceLog.Network network;
     private DeviceLog.Location location;
     private LocalDateTime recordTime;
-
-    /**
-     * DeviceLog'dan güncel snapshot oluşturur. id = identity.identifierForVendor (IDFV); cihaz başına tek kayıt.
-     * identity veya identifierForVendor yoksa null döner (device_data'ya yazılmaz).
-     */
-    public static DeviceData from(DeviceLog log) {
-        if (log == null || log.getIdentity() == null || log.getIdentity().getIdentifierForVendor() == null) {
-            return null;
-        }
-        DeviceData d = new DeviceData();
-        d.setId(log.getIdentity().getIdentifierForVendor());
-        d.setIdentity(log.getIdentity());
-        d.setResources(log.getResources());
-        d.setPower(log.getPower());
-        d.setNetwork(log.getNetwork());
-        d.setLocation(log.getLocation());
-        d.setRecordTime(log.getRecordTime());
-        return d;
-    }
 }
