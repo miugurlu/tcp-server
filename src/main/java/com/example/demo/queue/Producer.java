@@ -1,5 +1,6 @@
 package com.example.demo.queue;
 
+import com.example.demo.common.GeneralException;
 import com.example.demo.model.DeviceLog;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +23,7 @@ public class Producer {
             deviceLogQueue.put(log);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException("Kuyruğa eklenirken kesinti", e);
+            throw new GeneralException("Kuyruğa eklenirken kesinti", e);
         }
     }
 }

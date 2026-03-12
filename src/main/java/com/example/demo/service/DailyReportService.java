@@ -1,9 +1,11 @@
 package com.example.demo.service;
 
+import com.example.demo.common.GeneralException;
 import com.example.demo.dto.DailyReport;
 import com.example.demo.mapper.IDailyReportMapper;
 import com.example.demo.model.DeviceLog;
 import com.example.demo.repository.IDeviceLogRepository;
+import jakarta.mail.Message;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -54,12 +56,12 @@ public class DailyReportService {
                 .map(deviceLogs -> {
                     DailyReport.DeviceReportEntry entry = dailyReportMapper.toDeviceReportEntry(deviceLogs.get(0));
                     List<DailyReport.DeviceReadingRow> readings = deviceLogs.stream()
-                            .map(log -> dailyReportMapper.toDeviceReadingRow(log))
-                            .collect(Collectors.toList());
+                            .map(dailyReportMapper :: toDeviceReadingRow)
+                            .toList();
                     entry.setReadings(readings);
                     return entry;
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         DailyReport report = new DailyReport();
         report.setReportDate(date);
@@ -77,12 +79,12 @@ public class DailyReportService {
 
         MimeMessage message = javaMailSender.createMimeMessage();
         try {
-            message.setRecipients(MimeMessage.RecipientType.TO, reportToEmail);
+            message.setRecipients(Message.RecipientType.TO, reportToEmail);
             message.setSubject("Günlük cihaz raporu – " + report.getReportDate());
             message.setContent(html, "text/html; charset=UTF-8");
             javaMailSender.send(message);
         } catch (MessagingException e){
-            throw new RuntimeException("Rapor maili gönderilemedi", e);
+            throw new GeneralException("Rapor maili gönderilemedi", e);
         }
     }
 }
