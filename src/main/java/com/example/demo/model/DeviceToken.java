@@ -20,7 +20,7 @@ public class DeviceToken {
     @Id
     private String id;
 
-    private String deviceToken;
+    private String token;
 
     /**
      * Upsert için: id alanı deviceId olarak set edilir, böylece aynı cihaz tekrar gelince güncelleme yapılır.
@@ -28,7 +28,7 @@ public class DeviceToken {
     public static DeviceToken of(String deviceId, String deviceToken) {
         DeviceToken t = new DeviceToken();
         t.setId(deviceId);
-        t.setDeviceToken(deviceToken);
+        t.setToken(deviceToken);
         return t;
     }
 }

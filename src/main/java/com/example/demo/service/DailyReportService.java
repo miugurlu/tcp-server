@@ -3,8 +3,7 @@ package com.example.demo.service;
 import com.example.demo.dto.DailyReport;
 import com.example.demo.mapper.IDailyReportMapper;
 import com.example.demo.model.DeviceLog;
-import com.example.demo.repository.IDeviceRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.repository.IDeviceLogRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -23,17 +22,20 @@ import java.util.stream.Collectors;
 @Service
 public class DailyReportService {
 
-    @Autowired
-    private IDeviceRepository deviceRepository;
+    private final IDeviceLogRepository deviceLogRepository;
 
-    @Autowired
-    private IDailyReportMapper dailyReportMapper;
+    private final IDailyReportMapper dailyReportMapper;
 
-    @Autowired
-    private TemplateEngine templateEngine;
+    private final TemplateEngine templateEngine;
 
-    @Autowired
-    private JavaMailSender javaMailSender;
+    private final JavaMailSender javaMailSender;
+
+    public DailyReportService(IDeviceLogRepository deviceLogRepository, IDailyReportMapper dailyReportMapper, TemplateEngine templateEngine, JavaMailSender javaMailSender){
+        this.deviceLogRepository = deviceLogRepository;
+        this.dailyReportMapper = dailyReportMapper;
+        this.templateEngine = templateEngine;
+        this.javaMailSender = javaMailSender;
+    }
 
     @Value("${report.mail.to}")
     private String reportToEmail;
@@ -41,7 +43,7 @@ public class DailyReportService {
     public DailyReport buildReportFor(LocalDate date) {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = date.plusDays(1).atStartOfDay();
-        List<DeviceLog> logs = deviceRepository.findByRecordTimeBetween(start, end);
+        List<DeviceLog> logs = deviceLogRepository.findByRecordTimeBetween(start, end);
 
         Map<String, List<DeviceLog>> logsByDevice = logs.stream()
                 .filter(log -> log.getIdentity() != null && log.getIdentity().getIdentifierForVendor() != null)

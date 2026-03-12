@@ -6,7 +6,6 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Files;
@@ -20,8 +19,11 @@ import java.util.Date;
 @Service
 public class ApnsJwtService {
 
-    @Autowired
-    private ApnsConfig apnsConfig;
+    private final ApnsConfig apnsConfig;
+
+    public ApnsJwtService(ApnsConfig apnsConfig){
+        this.apnsConfig = apnsConfig;
+    }
 
     /**
      * APNs için JWT token üretir.

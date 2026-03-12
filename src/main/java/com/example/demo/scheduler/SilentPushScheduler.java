@@ -4,7 +4,6 @@ import com.example.demo.model.DeviceToken;
 import com.example.demo.repository.IDeviceTokenRepository;
 import com.example.demo.service.ApnsPushService;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -14,11 +13,14 @@ import java.util.List;
 @Service
 public class SilentPushScheduler {
 
-    @Autowired
-    private IDeviceTokenRepository deviceTokenRepository;
+    private final IDeviceTokenRepository deviceTokenRepository;
 
-    @Autowired
-    private ApnsPushService apnsPushService;
+    private final ApnsPushService apnsPushService;
+
+    public SilentPushScheduler(IDeviceTokenRepository deviceTokenRepository, ApnsPushService apnsPushService){
+        this.deviceTokenRepository = deviceTokenRepository;
+        this.apnsPushService = apnsPushService;
+    }
 
     @Scheduled(cron = "0 0,30 * * * *")
     public void sendSilentPushToAllDevices(){
@@ -27,9 +29,9 @@ public class SilentPushScheduler {
 
         for (DeviceToken deviceToken : deviceTokenList ){
             try {
-                apnsPushService.sendSilentPush(deviceToken.getDeviceToken());
+                apnsPushService.sendSilentPush(deviceToken.getToken());
             } catch (Exception e) {
-                log.error("Error sending silent push to device: {}", deviceToken.getDeviceToken(), e);
+                log.error("Error sending silent push to device: {}", deviceToken.getToken(), e);
             }
         }
     }

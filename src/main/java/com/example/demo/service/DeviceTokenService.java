@@ -3,7 +3,6 @@ package com.example.demo.service;
 import com.example.demo.model.DeviceToken;
 import com.example.demo.repository.IDeviceTokenRepository;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -13,14 +12,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class DeviceTokenService {
 
-    @Autowired
-    private IDeviceTokenRepository deviceTokenRepository;
+    private final IDeviceTokenRepository deviceTokenRepository;
+
+    public DeviceTokenService(IDeviceTokenRepository deviceTokenRepository){
+        this.deviceTokenRepository = deviceTokenRepository;
+    }
 
     /**
      * DeviceToken nesnesini kaydeder veya aynı deviceId varsa günceller (upsert).
      */
     public void registerToken(DeviceToken deviceToken) {
-        if (deviceToken == null || deviceToken.getId() == null || deviceToken.getDeviceToken() == null) {
+        if (deviceToken == null || deviceToken.getId() == null || deviceToken.getToken() == null) {
             log.warn("registerToken: deviceToken veya gerekli alanlar null, kayıt atlanıyor.");
             return;
         }

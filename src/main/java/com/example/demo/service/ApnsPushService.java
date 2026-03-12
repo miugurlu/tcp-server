@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
 import com.example.demo.config.ApnsConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -15,11 +14,14 @@ import lombok.extern.log4j.Log4j2;
 @Service
 public class ApnsPushService {
 
-    @Autowired
-    private ApnsConfig apnsConfig;
+    private final ApnsConfig apnsConfig;
 
-    @Autowired
-    private ApnsJwtService apnsJwtService;
+    private final ApnsJwtService apnsJwtService;
+
+    public ApnsPushService(ApnsConfig apnsConfig, ApnsJwtService apnsJwtService){
+        this.apnsConfig = apnsConfig;
+        this.apnsJwtService = apnsJwtService;
+    }
 
     public void sendSilentPush(String deviceToken) throws Exception {
         String jwt = apnsJwtService.getToken();

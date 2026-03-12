@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -25,14 +24,17 @@ import java.time.LocalDateTime;
 @Service
 public class TcpServerService {
 
-    @Autowired
-    private Producer producer;
+    private final Producer producer;
 
-    @Autowired
-    private DeviceTokenService deviceTokenService;
+    private final DeviceTokenService deviceTokenService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+
+    public TcpServerService(Producer producer, DeviceTokenService deviceTokenService, ObjectMapper objectMapper){
+        this.producer = producer;
+        this.deviceTokenService = deviceTokenService;
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * Uygulama ayağa kalkınca bir kez çalışır; 8080 portunda TCP sunucusunu başlatır.

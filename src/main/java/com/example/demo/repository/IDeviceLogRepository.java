@@ -12,7 +12,7 @@ import java.util.List;
  * MongoRepository sayesinde save(), findById(), findAll() vb. otomatik gelir.
  */
 @Repository
-public interface IDeviceRepository extends MongoRepository<DeviceLog, String> {
+public interface IDeviceLogRepository extends MongoRepository<DeviceLog, String> {
 
     List<DeviceLog> findByRecordTimeBetween(LocalDateTime start, LocalDateTime end);
 }

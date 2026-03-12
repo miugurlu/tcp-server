@@ -1,26 +1,27 @@
 package com.example.demo.queue;
 
 import com.example.demo.model.DeviceLog;
-import com.example.demo.service.DeviceLogService;
+import com.example.demo.service.LogDeviceService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.BlockingQueue;
 
 /**
- * Kuyruktan DeviceLog alıp MongoDB'ye yazar. Uygulama başlarken ayrı thread'de döngüye girer.
+ * Kuyruktan DeviceLog alıp MongoDB'ye yazar.
  */
 @Log4j2
 @Component
 public class Consumer {
 
-    @Autowired
-    private BlockingQueue<DeviceLog> deviceLogQueue;
+    private final BlockingQueue<DeviceLog> deviceLogQueue;
+    private final LogDeviceService logDeviceService;
 
-    @Autowired
-    private DeviceLogService deviceLogService;
+    public Consumer(BlockingQueue<DeviceLog> deviceLogQueue, LogDeviceService logDeviceService){
+        this.deviceLogQueue = deviceLogQueue;
+        this.logDeviceService = logDeviceService;
+    }
 
     @PostConstruct
     public void startConsuming() {
@@ -28,7 +29,7 @@ public class Consumer {
             while (true) {
                 try {
                     DeviceLog deviceLog = deviceLogQueue.take();
-                    deviceLogService.logDevice(deviceLog);
+                    logDeviceService.logDevice(deviceLog);
                     log.info("Veri MongoDB'ye kaydedildi.");
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
