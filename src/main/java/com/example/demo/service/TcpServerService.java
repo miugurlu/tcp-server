@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.common.GeneralException;
 import com.example.demo.dto.TcpInboundMessage;
 import com.example.demo.model.DeviceLog;
 import com.example.demo.model.DeviceToken;
@@ -10,6 +11,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -49,8 +51,8 @@ public class TcpServerService {
                     Socket clientSocket = serverSocket.accept();
                     handleClient(clientSocket);
                 }
-            } catch (Exception e) {
-                log.error("TCP sunucu hatası", e);
+            } catch (IOException e) {
+                log.error("TCP sunucu hatası", new GeneralException("TCP sunucu hatası", e));
             }
         }, "tcp-server-acceptor").start();
     }
@@ -95,8 +97,8 @@ public class TcpServerService {
                 }
 
                 log.warn("Bilinmeyen mesaj tipi, atlanıyor: type={}", dto.getType());
-            } catch (Exception e) {
-                log.warn("Veri okunurken hata oluştu: {}", e.getMessage(), e);
+            } catch (IOException e) {
+                log.warn("Veri okunurken hata", new GeneralException("Veri okunamadı", e));
             }
         }, clientName).start();
     }

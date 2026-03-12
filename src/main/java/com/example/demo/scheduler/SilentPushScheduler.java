@@ -28,11 +28,7 @@ public class SilentPushScheduler {
         List<DeviceToken> deviceTokenList = deviceTokenRepository.findAll();
 
         for (DeviceToken deviceToken : deviceTokenList ){
-            try {
-                apnsPushService.sendSilentPush(deviceToken.getToken());
-            } catch (Exception e) {
-                log.error("Error sending silent push to device: {}", deviceToken.getToken(), e);
-            }
+            apnsPushService.sendSilentPush(deviceToken.getToken());
         }
     }
 }
