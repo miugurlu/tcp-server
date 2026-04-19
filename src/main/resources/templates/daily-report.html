@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8"/>
-    <title>Günlük Cihaz Raporu</title>
+    <title>Daily Device Report</title>
     <style>
         body { font-family: sans-serif; margin: 1rem; }
         h1 { font-size: 1.25rem; }
@@ -15,28 +15,28 @@
     </style>
 </head>
 <body>
-    <h1>Günlük Cihaz Raporu</h1>
-    <p th:if="${dailyReport != null}" th:text="'Rapor Tarihi: ' + ${dailyReport.reportDate}">Rapor Tarihi</p>
+    <h1>Daily Device Report</h1>
+    <p th:if="${dailyReport != null}" th:text="'Report date: ' + ${dailyReport.reportDate}">Report date</p>
 
     <div th:if="${dailyReport != null and dailyReport.devices != null}" th:each="device : ${dailyReport.devices}" class="device-block">
-        <div class="device-header" th:text="${device.deviceName} ?: '(İsimsiz cihaz)'">Cihaz adı</div>
+        <div class="device-header" th:text="${device.deviceName} ?: '(Unnamed device)'">Device name</div>
         <div class="device-meta">
-            <span th:text="${'Sistem: ' + device.systemName}">Sistem</span>
-            <span th:text="${' | Sürüm: ' + device.systemVersion}">Sürüm</span>
+            <span th:text="${'System: ' + device.systemName}">System</span>
+            <span th:text="${' | Version: ' + device.systemVersion}">Version</span>
             <span th:text="${' | IDFV: ' + device.identifierForVendor}">IDFV</span>
         </div>
         <table th:if="${device.readings != null and !device.readings.isEmpty()}">
             <thead>
                 <tr>
-                    <th>Kayıt zamanı</th>
-                    <th>Bellek (GB)</th>
-                    <th>İşlemci (aktif/toplam)</th>
-                    <th>Çalışma süresi</th>
-                    <th>Disk (toplam/boş GB)</th>
-                    <th>Batarya</th>
-                    <th>Batarya durumu</th>
-                    <th>Termal</th>
-                    <th>Bağlantı</th>
+                    <th>Recorded at</th>
+                    <th>Memory (GB)</th>
+                    <th>CPU (active/total)</th>
+                    <th>Uptime</th>
+                    <th>Disk (total/free GB)</th>
+                    <th>Battery</th>
+                    <th>Battery state</th>
+                    <th>Thermal</th>
+                    <th>Connection</th>
                 </tr>
             </thead>
             <tbody>
@@ -53,9 +53,9 @@
                 </tr>
             </tbody>
         </table>
-        <p th:if="${device.readings == null or device.readings.isEmpty()}" class="device-meta">Bu gün için okuma yok.</p>
+        <p th:if="${device.readings == null or device.readings.isEmpty()}" class="device-meta">No readings for this day.</p>
     </div>
 
-    <p th:if="${dailyReport == null or dailyReport.devices == null or dailyReport.devices.isEmpty()}">Rapor verisi yok.</p>
+    <p th:if="${dailyReport == null or dailyReport.devices == null or dailyReport.devices.isEmpty()}">No report data.</p>
 </body>
 </html>
